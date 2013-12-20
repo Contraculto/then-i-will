@@ -15,14 +15,14 @@ $tweets = array();
 //	Needs a Twitter app to use the search API.
 //	You should make one and fill in your data.
 $settings = array(
-	'oauth_access_token' => "FILL_ME",
-	'oauth_access_token_secret' => "FILL_ME",
-	'consumer_key' => "FILL_ME",
-	'consumer_secret' => "FILL_ME"
+	'oauth_access_token' => "787820996-r3j2ewtbznoWW1aJWTLydcb9JrJZibB2PGAQdjv3",
+	'oauth_access_token_secret' => "IEt2pU7ewrtwoSXgOa00glMiJh0cS6kApe10cLJE",
+	'consumer_key' => "JUxfLG4aQfHJOYcUflLmlQ",
+	'consumer_secret' => "ioZpJ4QewjbDC3PasYkPbegXqf6JgAPwcdq2zwwwk40"
 );
 
 //	The phrases used for the search. Everything is possible.
-$phrases = array('"Then I will"', '"Then I\'ll"', '"Then I might"', '"Then I probably will"', '"Then maybe I will"');
+$phrases = array('"Then I will"', '"Then I\'ll"', '"Then I might"', '"Then I probably will"', '"Then maybe I will"', '"Then I definitely will"', '"Then I won\'t"');
 
 //	Function Oriented Programming.
 function search($query='',$max='') {
@@ -44,12 +44,15 @@ function search($query='',$max='') {
 				$t = stristr($tweet->text, 'then'); // Cut the part we want.
 				$t = str_replace(array("\n", "\r", "chr(13)",  "\t", "\0", "\x0B"), '', $t); // Linebreaks. This doesn't work but it doesn't matter right now.
 				$t = preg_replace('|https?://[a-z\.0-9/]+|i', '', $t); // Links.
-				$t = preg_replace('|#[a-zA-Z0-9_]|', '', $t); // Hashtags.
+				//$t = preg_replace('|#[a-zA-Z0-9_]|', '', $t); // Hashtags.
 				$t = preg_replace('/[^\00-\255]+/u', '', $t); // Non-english stuff, like emoji.
-				$t = str_replace(array('"',"'",'#','@', '  '), '', $t); // The loose bits.
+				$t = str_replace('"', '', $t); // Quotes.
+				$t = str_replace('  ', ' ', $t); // Double spaces.
 				$t = trim($t, '.,;:?!\'"()[]{} '); // Trim.
 				$t = str_replace(' i ', ' I ', ucfirst(strtolower($t))); // And capitalize.
-				$tweets[] = $t;
+				if ($t !== $query && !stripos($t, '#')):
+					$tweets[] = $t;
+				endif;
 				$ids[] = $tweet->id;
 			endif;
 		endforeach;
@@ -69,6 +72,7 @@ function search($query='',$max='') {
 //	Get the tweets.
 $twitter = new TwitterAPIExchange($settings);
 foreach ($phrases as $p):
+	$i = 0;
 	$data = search($p);
 	if (!empty($data['tweets'])):
 		foreach($data['tweets'] as $t):
@@ -83,7 +87,9 @@ foreach ($phrases as $p):
 				array_push($tweets, $t);
 			endforeach;
 		endif;
+		if ($i >= 2) {break;}
 		$max = $data['max'];
+		$i++;
 	endwhile;
 endforeach;
 
@@ -109,7 +115,7 @@ shuffle($tweets);
 	<div id="wrapper">
 		<h1>Then I will.</h1>
 		<h2>A novel by a script by Rodrigo Lanas.</h2>
-		<p>First I will write some code.&nbsp;
+		<p>First I will write some code.
 			<?php
 			foreach ($tweets as $t):
 				echo $t;
